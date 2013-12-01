@@ -35,6 +35,14 @@ class session{
 abstract class page
 {
     public $content;
+    protected $host = 'sql.njit.edu';
+    protected $dbname = 'lfs4';
+    protected $user = 'lfs4';
+    protected $pass = '1MVQE1Y6';
+    
+    protected $newQuery = '';
+    
+    protected $table = '';
     
     protected function menu()
     {
@@ -73,7 +81,7 @@ class homepage extends page
 	{
 		$menu = '<h1>Homepage</h1>';
 		$menu .= '<br><a href="./index.php?page=totalEn">1. Total Enrollment</a> ';
-		$menu .= '<br><a href="./index.php?page=register">Register</a> ';
+		$menu .= '<br><a href="./index.php?page=totalLib">2. Total Liabilities</a> ';
 		$menu .= '<br><a href="./index.php?page=forgotPW">Forgot Password</a> ';
 		$menu .= '<br><a href="./index.php?page=transactionsTable">Transactions Table</a> ';
 		$menu .= '<br><a href="./index.php?page=makePayment">Debit/Credit Transactions</a> ';
@@ -83,6 +91,8 @@ class homepage extends page
 }
 class totalEn extends page
 {
+
+    
     function get()
     {
 	$this->content .= $this->menu();
@@ -90,57 +100,114 @@ class totalEn extends page
     }
     function makeTable()
     {
-	$host = 'sql.njit.edu';
-	$dbname = 'lfs4';
-	$user = 'lfs4';
-	$pass = '1MVQE1Y6';
-
-	$table = 'Im a table!';
-	try{
-	
-	    $DBH = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-	    //echo 'connected to database';
-	    $STH = $DBH->query('SELECT hd2011.INSTNAME, effy2011.EFFYTOTLT, effy2010.ENTOT
+	   $this->newQuery .=  'SELECT hd2011.INSTNAME, effy2011.EFFYTOTLT, effy2010.ENTOT
 				    FROM hd2011
 				    JOIN effy2011
 				    ON
 				    hd2011.UNITID = effy2011.UNITID
 				    JOIN effy2010
-				    on
+				    ON
 				    hd2011.UNITID = effy2010.UNITID
 				    ORDER BY effy2011.EFFYTOTLT
 				    DESC
-				    LIMIT 10');
+				    LIMIT 10';
+    
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
 	    //$STH->execute();
 	    
 	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
 	    
 	    $STH->setFetchMode(PDO::FETCH_ASSOC);
 	    //print_r($STH->fetch());
-	    $table = '<table border = "1">';
-	    $table .= '<tr>';
-	    $table .= '<td>University</td>';
-	    $table .= '<td>Total Enrollment 2011</td>';
-	    $table .= '<td>Total Enrollment 2010</td>';
-	    $table .= '</tr>';
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Enrollment 2011</td>';
+	    $this->table .= '<td>Total Enrollment 2010</td>';
+	    $this->table .= '</tr>';
 	    while($row = $STH->fetch()){
 		    //echo $row->name;
-		    $table .= '<tr>';
-		    $table .= '<td>' . $row['INSTNAME'] . '</td>';
-		    $table .= '<td>' . $row['EFFYTOTLT'] . '</td>';
-		    $table .= '<td>' . $row['ENTOT'] . '</td>';
-		    $table .= '</tr>';
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['EFFYTOTLT'] . '</td>';
+		    $this->table .= '<td>' . $row['ENTOT'] . '</td>';
+		    $this->table .= '</tr>';
 		    
 	    }
 	    
-	    $table .= '</table>';
+	    $this->table .= '</table>';
 	}
 
 
 	catch(PDOException $e){
 		echo $e->getMessage();
 	}
-	return $table;
+	return $this->table;
+    }
+}
+class totalLib extends page
+{
+      function get()
+    {
+	$this->content .= $this->menu();
+	$this->content .= $this->makeTable();
+    }
+    function makeTable()
+    {
+	   $this->newQuery .=  'SELECT hd2011.INSTNAME, financial2011.TOTNASSETS AS TOTASSETS11,
+				financial2010.TOTNASSETS AS TOTASSETS10
+				FROM hd2011
+				INNER JOIN financial2011 on
+				hd2011.UNITID = financial2011.UNITID
+				INNER JOIN financial2010 on
+				hd2011.UNITID = financial2010.UNITID
+				ORDER BY financial2011.TOTNASSETS
+				DESC
+				LIMIT 10';
+				    
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Liabilities 2011</td>';
+	    $this->table .= '<td>Total Liabilities 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTASSETS11'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTASSETS10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
     }
 }
 class register extends page
