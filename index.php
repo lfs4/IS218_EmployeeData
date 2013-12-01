@@ -20,46 +20,6 @@ class program
     {
     }
 }
-class user{
-	public $name;
-	public $email;
-	public $pasword;
-	function save(){
-		
-	}
-}
-class users{
-	public $users;
-	//function add(username, password,email){}
-	function delete(){}
-	function authenticate(){}
-}
-class file{
-	public $file_name = 'test.csv';
-	protected function read_csv(){
-		$first_num = TRUE;
-		if(($handle = fopen($$this->filename,"r" )) !== FALSE){
-			while(($data = fgetcsv($handle,0,'','')) !== FALSE){
-				if($first_num = TRUE){
-					$field_names = $this->create_field_names($data);
-					$first_num = FALSE;	
-				}
-				else {
-					$records[] = $this->create_record($data,$field_names);
-				}
-			}
-			fclose($handle);
-		}
-	}
-	public function create_field_names($data)
-	{
-		return $data;
-	}
-	public function create_record($data, $field_names){
-		$data = array_combine($field_names, $data);
-		return $data;
-	}
-}
 class session{
 	public function __construct(){
 		session_start();
@@ -112,7 +72,7 @@ class homepage extends page
 	protected function menu()
 	{
 		$menu = '<h1>Homepage</h1>';
-        $menu .= '<br><a href="./index.php?page=login">Login</a> ';
+		$menu .= '<br><a href="./index.php?page=totalEn">1. Total Enrollment</a> ';
 		$menu .= '<br><a href="./index.php?page=register">Register</a> ';
 		$menu .= '<br><a href="./index.php?page=forgotPW">Forgot Password</a> ';
 		$menu .= '<br><a href="./index.php?page=transactionsTable">Transactions Table</a> ';
@@ -120,6 +80,68 @@ class homepage extends page
 		
         return $menu;
 	}
+}
+class totalEn extends page
+{
+    function get()
+    {
+	$this->content .= $this->menu();
+	$this->content .= $this->makeTable();
+    }
+    function makeTable()
+    {
+	$host = 'sql.njit.edu';
+	$dbname = 'lfs4';
+	$user = 'lfs4';
+	$pass = '1MVQE1Y6';
+
+	$table = 'Im a table!';
+	try{
+	
+	    $DBH = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query('SELECT hd2011.INSTNAME, effy2011.EFFYTOTLT, effy2010.ENTOT
+				    FROM hd2011
+				    JOIN effy2011
+				    ON
+				    hd2011.UNITID = effy2011.UNITID
+				    JOIN effy2010
+				    on
+				    hd2011.UNITID = effy2010.UNITID
+				    ORDER BY effy2011.EFFYTOTLT
+				    DESC
+				    LIMIT 10');
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $table = '<table border = "1">';
+	    $table .= '<tr>';
+	    $table .= '<td>University</td>';
+	    $table .= '<td>Total Enrollment 2011</td>';
+	    $table .= '<td>Total Enrollment 2010</td>';
+	    $table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $table .= '<tr>';
+		    $table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $table .= '<td>' . $row['EFFYTOTLT'] . '</td>';
+		    $table .= '<td>' . $row['ENTOT'] . '</td>';
+		    $table .= '</tr>';
+		    
+	    }
+	    
+	    $table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $table;
+    }
 }
 class register extends page
 {
@@ -185,17 +207,20 @@ class transactionsTable extends page
 {
 	function get()
 	{
-		$session = new session();
+	
 		$this->content .=$this->menu();
-		if($_SESSION['loggedIn'] ==  TRUE){
-			$this->content.= '<br>Hi ' . $_SESSION['username'] . ' ,';
-		}
+		
+		/*(if($_SESSION['loggedIn'] == true)
+		{
+			$this->content .= $this->greeting();
+		}*/
+		
 		$this->content .=$this->makeTable();
 		
+		echo $_SESSION['username'];
 	}
 	function greeting()
 	{
-		
 	}
 	function makeTable()
 	{
@@ -283,11 +308,13 @@ class login extends page
 			$session = new session();
 			$session->saveUser($_POST['username'], $_POST['password']);
 			
-			header('Location: ./index.php?page=transactionsTable');
+			print_r($_SESSION);
+			
+			header('Location: http://web.njit.edu/~lfs4/is218/index.php?page=transactionsTable');
 			
 			
 		}else{
-			header('Location: ./index.php?page=incorrectLogin');	
+			header('Location: http://web.njit.edu/~lfs4/is218/index.php?page=incorrectLogin');	
 		} 
 	}
 }
