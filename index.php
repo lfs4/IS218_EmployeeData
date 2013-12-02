@@ -63,6 +63,7 @@ abstract class page
     function get()
     {
         $this->content .= $this->menu();
+	$this->content .= $this->makeTable();
     }
     function post()
     {
@@ -82,11 +83,20 @@ class homepage extends page
 		$menu = '<h1>Homepage</h1>';
 		$menu .= '<br><a href="./index.php?page=totalEn">1. Total Enrollment</a> ';
 		$menu .= '<br><a href="./index.php?page=totalLib">2. Total Liabilities</a> ';
-		$menu .= '<br><a href="./index.php?page=forgotPW">Forgot Password</a> ';
-		$menu .= '<br><a href="./index.php?page=transactionsTable">Transactions Table</a> ';
-		$menu .= '<br><a href="./index.php?page=makePayment">Debit/Credit Transactions</a> ';
+		$menu .= '<br><a href="./index.php?page=totalAssets">3. Total Assets</a> ';
+		$menu .= '<br><a href="./index.php?page=totalRev">5. Total Revenue</a> ';
+		$menu .= '<br><a href="./index.php?page=assetsPerStudent">6. Assets Per Student</a> ';
+		$menu .= '<br><a href="./index.php?page=libPerStudent">7. Liabilities Per Student</a> ';
+		$menu .= '<br><a href="./index.php?page=revPerStudent">8. Revenue Per Student</a> ';
+		$menu .= '<br><a href="./index.php?page=stateForm">10. Select College From State</a> ';
+		
 		
         return $menu;
+	}
+	
+	protected function makeTable()
+	{
+	    
 	}
 }
 class totalEn extends page
@@ -153,11 +163,61 @@ class totalEn extends page
 }
 class totalLib extends page
 {
-      function get()
+    function makeTable()
     {
-	$this->content .= $this->menu();
-	$this->content .= $this->makeTable();
+	   $this->newQuery .=  'SELECT hd2011.INSTNAME,financial2011.TOTLIB AS LIB11,
+				financial2010.TOTLIB AS LIB10
+				FROM hd2011
+				INNER JOIN financial2011 on
+				hd2011.UNITID = financial2011.UNITID
+				INNER JOIN financial2010 on
+				hd2011.UNITID = financial2010.UNITID
+				ORDER BY financial2011.TOTLIB
+				DESC
+				LIMIT 10';
+				    
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Liabilities 2011</td>';
+	    $this->table .= '<td>Total Liabilities 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['LIB11'] . '</td>';
+		    $this->table .= '<td>' . $row['LIB10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
     }
+}
+class totalAssets extends page
+{
+
     function makeTable()
     {
 	   $this->newQuery .=  'SELECT hd2011.INSTNAME, financial2011.TOTNASSETS AS TOTASSETS11,
@@ -187,8 +247,8 @@ class totalLib extends page
 	    $this->table .= '<table border = "1">';
 	    $this->table .= '<tr>';
 	    $this->table .= '<td>University</td>';
-	    $this->table .= '<td>Total Liabilities 2011</td>';
-	    $this->table .= '<td>Total Liabilities 2010</td>';
+	    $this->table .= '<td>Total Assets 2011</td>';
+	    $this->table .= '<td>Total Assets 2010</td>';
 	    $this->table .= '</tr>';
 	    while($row = $STH->fetch()){
 		    //echo $row->name;
@@ -210,6 +270,263 @@ class totalLib extends page
 	return $this->table;
     }
 }
+class totalRev extends page
+{
+     function makeTable()
+    {
+	   $this->newQuery .=  ' SELECT hd2011.INSTNAME, financial2011.TOTREV AS TOTREV11,
+				    financial2010.TOTREV AS TOTREV10
+				    FROM hd2011
+				    INNER JOIN financial2011 on
+				    hd2011.UNITID = financial2011.UNITID
+				    INNER JOIN financial2010 on
+				    hd2011.UNITID = financial2010.UNITID
+				    ORDER BY financial2011.TOTREV
+				    DESC
+				    LIMIT 10';
+									
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Revenue 2011</td>';
+	    $this->table .= '<td>Total Revenue 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTREV11'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTREV10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class assetsPerStudent extends page
+{
+    function makeTable()
+    {
+	   $this->newQuery .=  ' SELECT hd2011.INSTNAME, financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS AssetsPerStudent11,
+				    financial2010.TOTNASSETS/effy2010.ENTOT AS AssetsPerStudent10
+				    FROM hd2011
+				    INNER JOIN effy2010
+				    ON
+				    hd2011.UNITID = effy2010.UNITID
+				    INNER JOIN effy2011
+				    ON
+				    hd2011.UNITID = effy2011.UNITID
+				    INNER JOIN financial2010 on
+				    hd2011.UNITID = financial2010.UNITID
+				    INNER JOIN financial2011
+				    ON
+				    hd2011.UNITID = financial2011.UNITID
+				    ORDER BY AssetsPerStudent11
+				    DESC
+				    LIMIT 10';
+									
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Assets Per Student 2011</td>';
+	    $this->table .= '<td>Total Assets Per Student 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['AssetsPerStudent11'] . '</td>';
+		    $this->table .= '<td>' . $row['AssetsPerStudent10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class libPerStudent extends page
+{
+     function makeTable()
+    {
+	   $this->newQuery .=  ' SELECT hd2011.INSTNAME, financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent11,
+				    financial2010.TOTLIB/effy2010.ENTOT AS LibPerStudent10
+				    FROM hd2011
+				    INNER JOIN effy2010
+				    ON
+				    hd2011.UNITID = effy2010.UNITID
+				    INNER JOIN effy2011
+				    ON
+				    hd2011.UNITID = effy2011.UNITID
+				    INNER JOIN financial2010 on
+				    hd2011.UNITID = financial2010.UNITID
+				    INNER JOIN financial2011
+				    ON
+				    hd2011.UNITID = financial2011.UNITID
+				    ORDER BY LibPerStudent11
+				    DESC
+				    LIMIT 10';
+									
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Assets Per Student 2011</td>';
+	    $this->table .= '<td>Total Assets Per Student 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['LibPerStudent11'] . '</td>';
+		    $this->table .= '<td>' . $row['LibPerStudent10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class revPerStudent extends page
+{
+     function makeTable()
+    {
+	   $this->newQuery .=  ' SELECT hd2011.INSTNAME, financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent11,
+				    financial2010.TOTREV/effy2010.ENTOT AS RevPerStudent10
+				    FROM hd2011
+				    INNER JOIN effy2010
+				    ON
+				    hd2011.UNITID = effy2010.UNITID
+				    INNER JOIN effy2011
+				    ON
+				    hd2011.UNITID = effy2011.UNITID
+				    INNER JOIN financial2010 on
+				    hd2011.UNITID = financial2010.UNITID
+				    INNER JOIN financial2011
+				    ON
+				    hd2011.UNITID = financial2011.UNITID
+				    ORDER BY RevPerStudent11
+				    DESC
+				    LIMIT 10';
+									
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Total Revenue Per Student 2011</td>';
+	    $this->table .= '<td>Total Revenue Per Student 2010</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['RevPerStudent11'] . '</td>';
+		    $this->table .= '<td>' . $row['RevPerStudent10'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class stateForm extends page
+{
+    function get()
+    {
+	$this->content .= $this->menu();
+	$this->content .= $this->createForm();
+    }
+    function createForm(){
+	$form = '<form action="index.php?page=stateTable" method="post">
+		<h1>Select a State</h1>
+		<p>
+		    <input type = "text" name = "stateId"><br>
+		    <input type = "submit">
+		    
+		</p>  
+		';
+	return $form;
+    }
+}
+
 class register extends page
 {
 	function get()
@@ -235,6 +552,7 @@ class register extends page
 				</form>';
 				return $form;
 	}
+	
 
 }
 class makePayment extends page
