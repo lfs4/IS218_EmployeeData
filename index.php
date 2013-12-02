@@ -76,8 +76,235 @@ abstract class page
     }
     
 }
+abstract class comparison extends page
+{
+    //protected $queryMy = 'SELECT * FROM test LIMIT 10';
+    
+    function get ()
+    {
+	
+	$this->content .= $this->menu();
+	$this->ConvertQ();
+	$this->content .= $this->comparisonTable();
+
+    }
+    protected function ConvertQ()
+    {
+	$this->newQuery = 'SELECT * FROM hd2011 LIMIT 10';
+	echo $this->newQuery;
+    }
+    protected function comparisonTable()
+    {
+	
+	//$this->newQuery = $this->queryMy;
+	
+	
+    	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	   $STH->setFetchMode(PDO::FETCH_ASSOC);
+	   
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td><a href = "./index.php?page=compEn">Total Enrollment 2011</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compLib">Total Liabilities 2011</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compAs">Total Assets 2011</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compRev">Total Revenue 2011</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compAPS">Assets Per Student</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compLPS">Liabilities Per Student</a></td>';
+	    $this->table .= '<td><a href = "./index.php?page=compRPS">Revenue Per Student</a></td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['EFFYTOTLT'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTLIB'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTNASSETS'] . '</td>';
+		    $this->table .= '<td>' . $row['TOTREV'] . '</td>';
+		    $this->table .= '<td>' . $row['LibPerStudent'] . '</td>';
+		    $this->table .= '<td>' . $row['ASSPerStudent'] . '</td>';
+		    $this->table .= '<td>' . $row['RevPerStudent'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	    
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+	
+    }
+}
+class compEn extends comparison
+{
+    
+    function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.UNITID, hd2011.INSTNAME, effy2011.EFFYTOTLT,
+			    financial2011.TOTLIB, financial2011.TOTNASSETS, financial2011.TOTREV,
+			    financial2011.TOTREV / effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS / effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB / effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011 ON hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011 ON hd2011.UNITID = financial2011.UNITID
+			    ORDER BY effy2011.EFFYTOTLT DESC 
+			    LIMIT 5';
+	//$this->newQuery = 'SELECT hd2011.INSTNAME LIMIT 10';
+	
+    }
+   
+
+}
+class compLib extends comparison
+{
+    function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY financial2011.TOTLIB
+			    DESC
+			    LIMIT 5';
+    }
+}
+class compAs extends comparison
+{
+        function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY financial2011.TOTNASSETS
+			    DESC
+			    LIMIT 5';
+    }
+}
+class compRev extends comparison
+{
+    function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY financial2011.TOTREV
+			    DESC
+			    LIMIT 5';
+    }
+}
+class compAPS extends comparison
+{
+     function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY ASSPerStudent
+			    DESC
+			    LIMIT 5';
+    }
+}
+class compLPS extends comparison
+{
+    function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY LibPerStudent
+			    DESC
+			    LIMIT 5';
+    }
+}
+class compRPS extends comparison
+{
+    function ConvertQ()
+    {
+	$this->newQuery = 'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, financial2011.TOTLIB,
+			    financial2011.TOTNASSETS,
+			    financial2011.TOTREV,
+			    financial2011.TOTREV/effy2011.EFFYTOTLT AS RevPerStudent,
+			    financial2011.TOTNASSETS/effy2011.EFFYTOTLT AS ASSPerStudent,
+			    financial2011.TOTLIB/effy2011.EFFYTOTLT AS LibPerStudent
+			    FROM hd2011
+			    INNER JOIN effy2011
+			    ON
+			    hd2011.UNITID = effy2011.UNITID
+			    LEFT JOIN financial2011
+			    ON
+			    hd2011.UNITID = financial2011.UNITID
+			    ORDER BY RevPerStudent
+			    DESC
+			    LIMIT 5';
+    }
+}
 class homepage extends page
 {
+    
 	protected function menu()
 	{
 		$menu = '<h1>Homepage</h1>';
@@ -88,9 +315,11 @@ class homepage extends page
 		$menu .= '<br><a href="./index.php?page=assetsPerStudent">6. Assets Per Student</a> ';
 		$menu .= '<br><a href="./index.php?page=libPerStudent">7. Liabilities Per Student</a> ';
 		$menu .= '<br><a href="./index.php?page=revPerStudent">8. Revenue Per Student</a> ';
+		$menu .= '<br><a href="./index.php?page=compEn">9. Comparison Table</a> ';
 		$menu .= '<br><a href="./index.php?page=stateForm">10. Select College From State</a> ';
 		$menu .= '<br><a href="./index.php?page=EnPercentChange">11. Percent Increase in Liabilities</a> ';
 		$menu .= '<br><a href="./index.php?page=LibPercentChange">12. Percent Increase in Enrollment</a> ';
+		
 
 		
 		
@@ -114,7 +343,7 @@ class totalEn extends page
     }
     function makeTable()
     {
-	   $this->newQuery .=  'SELECT hd2011.INSTNAME, effy2011.EFFYTOTLT, effy2010.ENTOT
+	   $this->newQuery .=  'SELECT DISTINCT hd2011.INSTNAME, effy2011.EFFYTOTLT, effy2010.ENTOT
 				    FROM hd2011
 				    JOIN effy2011
 				    ON
@@ -178,7 +407,7 @@ class totalLib extends page
 				hd2011.UNITID = financial2010.UNITID
 				ORDER BY financial2011.TOTLIB
 				DESC
-				LIMIT 10';
+				LIMIT 5';
 				    
 
 	
@@ -233,7 +462,7 @@ class totalAssets extends page
 				hd2011.UNITID = financial2010.UNITID
 				ORDER BY financial2011.TOTNASSETS
 				DESC
-				LIMIT 10';
+				LIMIT 5';
 				    
 
 	
@@ -281,13 +510,13 @@ class totalRev extends page
 	   $this->newQuery .=  ' SELECT hd2011.INSTNAME, financial2011.TOTREV AS TOTREV11,
 				    financial2010.TOTREV AS TOTREV10
 				    FROM hd2011
-				    INNER JOIN financial2011 on
+				    LEFT JOIN financial2011 on
 				    hd2011.UNITID = financial2011.UNITID
-				    INNER JOIN financial2010 on
+				    LEFT JOIN financial2010 on
 				    hd2011.UNITID = financial2010.UNITID
 				    ORDER BY financial2011.TOTREV
 				    DESC
-				    LIMIT 10';
+				    LIMIT 5';
 									
 
 	
@@ -341,14 +570,14 @@ class assetsPerStudent extends page
 				    INNER JOIN effy2011
 				    ON
 				    hd2011.UNITID = effy2011.UNITID
-				    INNER JOIN financial2010 on
+				    LEFT JOIN financial2010 on
 				    hd2011.UNITID = financial2010.UNITID
-				    INNER JOIN financial2011
+				    LEFT JOIN financial2011
 				    ON
 				    hd2011.UNITID = financial2011.UNITID
 				    ORDER BY AssetsPerStudent11
 				    DESC
-				    LIMIT 10';
+				    LIMIT 5';
 									
 
 	
@@ -402,14 +631,14 @@ class libPerStudent extends page
 				    INNER JOIN effy2011
 				    ON
 				    hd2011.UNITID = effy2011.UNITID
-				    INNER JOIN financial2010 on
+				    LEFT JOIN financial2010 on
 				    hd2011.UNITID = financial2010.UNITID
-				    INNER JOIN financial2011
+				    LEFT JOIN financial2011
 				    ON
 				    hd2011.UNITID = financial2011.UNITID
 				    ORDER BY LibPerStudent11
 				    DESC
-				    LIMIT 10';
+				    LIMIT 5';
 									
 
 	
@@ -463,14 +692,14 @@ class revPerStudent extends page
 				    INNER JOIN effy2011
 				    ON
 				    hd2011.UNITID = effy2011.UNITID
-				    INNER JOIN financial2010 on
+				    LEFT JOIN financial2010 on
 				    hd2011.UNITID = financial2010.UNITID
-				    INNER JOIN financial2011
+				    LEFT JOIN financial2011
 				    ON
 				    hd2011.UNITID = financial2011.UNITID
 				    ORDER BY RevPerStudent11
 				    DESC
-				    LIMIT 10';
+				    LIMIT 5';
 									
 
 	
@@ -582,9 +811,9 @@ class EnPercentChange extends page
 	   $this->newQuery .=  'SELECT DISTINCT hd2011.INSTNAME,
 				    ((effy2011.EFFYTOTLT - effy2010.ENTOT)/effy2010.ENTOT) * 100 AS PERCENT_CHANGE
 				    FROM hd2011
-				    INNER JOIN effy2011
+				    LEFT JOIN effy2011
 				    ON hd2011.UNITID = effy2011.UNITID
-				    INNER JOIN effy2010
+				    LEFT JOIN effy2010
 				    ON hd2011.UNITID = effy2010.UNITID
 				    ORDER BY PERCENT_CHANGE
 				    DESC
@@ -678,10 +907,6 @@ class LibPercentChange extends page
 	}
 	return $this->table;
     }
-}
-class Comparison extends page
-{
-    
 }
 class register extends page
 {
