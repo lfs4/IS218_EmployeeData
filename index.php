@@ -513,20 +513,61 @@ class stateForm extends page
     {
 	$this->content .= $this->menu();
 	$this->content .= $this->createForm();
+	$this->content .- $this->post();
     }
     function createForm(){
-	$form = '<form action="index.php?page=stateTable" method="post">
+	$form = '<form action="index.php?page=stateForm" method="post">
 		<h1>Select a State</h1>
 		<p>
 		    <input type = "text" name = "stateId"><br>
-		    <input type = "submit">
+		    <input type = "submit" value = "Send">
 		    
 		</p>  
 		';
 	return $form;
     }
-}
+    function post()
+    {
+	$state = $_POST['stateId'];
+	   $this->newQuery = "SELECT INSTNAME, STABBR
+			    FROM
+			    hd2011
+			    WHERE
+			    STABBR = '$state'";
+	    
+			    
+	try{
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>State Code</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['STABBR'] . '</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	echo $this->table;
 
+    }
+}
 class register extends page
 {
 	function get()
