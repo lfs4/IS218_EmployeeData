@@ -89,6 +89,10 @@ class homepage extends page
 		$menu .= '<br><a href="./index.php?page=libPerStudent">7. Liabilities Per Student</a> ';
 		$menu .= '<br><a href="./index.php?page=revPerStudent">8. Revenue Per Student</a> ';
 		$menu .= '<br><a href="./index.php?page=stateForm">10. Select College From State</a> ';
+		$menu .= '<br><a href="./index.php?page=EnPercentChange">11. Percent Increase in Liabilities</a> ';
+		$menu .= '<br><a href="./index.php?page=LibPercentChange">12. Percent Increase in Enrollment</a> ';
+
+		
 		
 		
         return $menu;
@@ -513,7 +517,7 @@ class stateForm extends page
     {
 	$this->content .= $this->menu();
 	$this->content .= $this->createForm();
-	$this->content .- $this->post();
+	
     }
     function createForm(){
 	$form = '<form action="index.php?page=stateForm" method="post">
@@ -537,6 +541,8 @@ class stateForm extends page
 	    
 			    
 	try{
+	    
+	
 	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
 	    //echo 'connected to database';
 	    $STH = $DBH->query($this->newQuery);
@@ -560,6 +566,7 @@ class stateForm extends page
 	    }
 	    
 	    $this->table .= '</table>';
+	   
 	}
 	catch(PDOException $e){
 		echo $e->getMessage();
@@ -567,6 +574,114 @@ class stateForm extends page
 	echo $this->table;
 
     }
+}
+class EnPercentChange extends page
+{
+     function makeTable()
+    {
+	   $this->newQuery .=  'SELECT DISTINCT hd2011.INSTNAME,
+				    ((effy2011.EFFYTOTLT - effy2010.ENTOT)/effy2010.ENTOT) * 100 AS PERCENT_CHANGE
+				    FROM hd2011
+				    INNER JOIN effy2011
+				    ON hd2011.UNITID = effy2011.UNITID
+				    INNER JOIN effy2010
+				    ON hd2011.UNITID = effy2010.UNITID
+				    ORDER BY PERCENT_CHANGE
+				    DESC
+				    LIMIT 10';
+													    
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Percent Increase 2010-2011</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['PERCENT_CHANGE'] . '%</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class LibPercentChange extends page
+{
+     function makeTable()
+    {
+	   $this->newQuery .=  'SELECT DISTINCT hd2011.INSTNAME,
+				    ((financial2011.TOTLIB - financial2010.TOTLIB)/financial2010.TOTLIB) * 100 AS PERCENT_CHANGE
+				    FROM hd2011
+				    INNER JOIN financial2011
+				    ON hd2011.UNITID = financial2011.UNITID
+				    INNER JOIN financial2010
+				    ON hd2011.UNITID = financial2010.UNITID
+				    ORDER BY PERCENT_CHANGE
+				    DESC
+				    LIMIT 10';
+													    
+
+	
+	try{
+	
+	    $DBH = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->user, $this->pass);
+	    //echo 'connected to database';
+	    $STH = $DBH->query($this->newQuery);
+	    //$STH->execute();
+	    
+	    //$STH = $DBH->query('SELECT first_name, last_name from employees');
+	    
+	    $STH->setFetchMode(PDO::FETCH_ASSOC);
+	    //print_r($STH->fetch());
+	    $this->table .= '<table border = "1">';
+	    $this->table .= '<tr>';
+	    $this->table .= '<td>University</td>';
+	    $this->table .= '<td>Percent Increase 2010-2011</td>';
+	    $this->table .= '</tr>';
+	    while($row = $STH->fetch()){
+		    //echo $row->name;
+		    $this->table .= '<tr>';
+		    $this->table .= '<td>' . $row['INSTNAME'] . '</td>';
+		    $this->table .= '<td>' . $row['PERCENT_CHANGE'] . '%</td>';
+		    $this->table .= '</tr>';
+		    
+	    }
+	    
+	    $this->table .= '</table>';
+	}
+
+
+	catch(PDOException $e){
+		echo $e->getMessage();
+	}
+	return $this->table;
+    }
+}
+class Comparison extends page
+{
+    
 }
 class register extends page
 {
